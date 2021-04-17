@@ -14,9 +14,8 @@
     "webpack-cli": "^4.6.0"
   },
   "scripts": {
-    "copy-files": "copyfiles -u 1 src/**/index.html src/**/index.css dist/",
-    "build": "webpack && yarn copy-files",
-    "compile": "tsc -p . && yarn copy-files"
+    "copy-files": "copyfiles -u 1 src/**/index.html src/**/index.css docs/",
+    "build": "webpack && yarn copy-files"
   },
   "dependencies": {
     "gl-matrix": "^3.3.0"

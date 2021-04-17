@@ -1,13 +1,83 @@
 import {vec2, vec3, vec4, mat2, mat3, mat4} from 'gl-matrix';
 
+type UniformType =
+  | '1f'
+  | '1i'
+  | '2f'
+  | '2i'
+  | '3f'
+  | '3i'
+  | '4f'
+  | '4i'
+  | 'Matrix2f'
+  | 'Matrix3f'
+  | 'Matrix4f';
+
+export interface Shader {
+  vertex_shader?: WebGLShader;
+  fragment_shader?: WebGLShader;
+  program?: WebGLProgram;
+}
+
+export interface Uniform {
+  location: WebGLUniformLocation;
+  type: any;
+  is_array: boolean;
+  value: any;
+  stack: any[];
+  push(): void;
+  pop(): void;
+}
+
+export interface VertexAttribute {
+  name: string;
+  size: number;
+  current?: number[];
+  location?: number;
+}
+
+export interface LegacyGL {
+  shader: Shader;
+  uniforms: {
+    [key: string]: Uniform;
+  };
+  add_uniform(name: string, type: UniformType): void;
+  add_uniform_array(name: string, type: UniformType, size: number): void;
+  set_uniforms(): void;
+  vertex_attributes: VertexAttribute[];
+  add_vertex_attribute(name: string, size: number): void;
+  vertex: (x: number, y: number, z: number) => void;
+  begin(mode: number | string): void;
+  end(): void;
+  QUADS: string;
+  displists: {};
+  current_displist_name: any;
+  newList(name: string): void;
+  endList(): void;
+  callList(name: string): void;
+  displist_wrapper(
+    name: string
+  ): {
+    is_valid: boolean;
+    draw(drawfunc: () => void): void;
+    invalidate(): void;
+  };
+  AUTO_NORMAL: string;
+  flags: {
+    AUTO_NORMAL: boolean;
+  };
+  enable(flag: string): void;
+  disable(flag: string): void;
+}
+
 export function get_legacygl(
   gl: WebGLRenderingContext,
   vertex_shader_src: string,
   fragment_shader_src: string
-) {
+): LegacyGL {
   var legacygl: any = {};
 
-  var shader: any = {};
+  var shader: Shader = {};
   // vertex shader
   shader.vertex_shader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(shader.vertex_shader, vertex_shader_src);
@@ -32,7 +102,7 @@ export function get_legacygl(
 
   // utility for uniforms
   legacygl.uniforms = {};
-  legacygl.add_uniform = function (name: any, type: any) {
+  legacygl.add_uniform = function (name: string, type: UniformType) {
     var uniform: any = {
       location: gl.getUniformLocation(this.shader.program, 'u_' + name),
       type: type,
@@ -60,17 +130,17 @@ export function get_legacygl(
         type == '1f' || type == '1i'
           ? this.value
           : type == '2f' || type == '2i'
-          ? vec2.copy([], this.value)
+          ? vec2.copy([] as any, this.value)
           : type == '3f' || type == '3i'
-          ? vec3.copy([], this.value)
+          ? vec3.copy([] as any, this.value)
           : type == '4f' || type == '4i'
-          ? vec4.copy([], this.value)
+          ? vec4.copy([] as any, this.value)
           : type == 'Matrix2f'
-          ? mat2.copy([], this.value)
+          ? mat2.copy([] as any, this.value)
           : type == 'Matrix3f'
-          ? mat3.copy([], this.value)
+          ? mat3.copy([] as any, this.value)
           : type == 'Matrix4f'
-          ? mat4.copy([], this.value)
+          ? mat4.copy([] as any, this.value)
           : undefined;
       this.stack.push(copy);
     };
@@ -80,24 +150,28 @@ export function get_legacygl(
         type == '1f' || type == '1i'
           ? copy
           : type == '2f' || type == '2i'
-          ? vec2.copy([], copy)
+          ? vec2.copy([] as any, copy)
           : type == '3f' || type == '3i'
-          ? vec3.copy([], copy)
+          ? vec3.copy([] as any, copy)
           : type == '4f' || type == '4i'
-          ? vec4.copy([], copy)
+          ? vec4.copy([] as any, copy)
           : type == 'Matrix2f'
-          ? mat2.copy([], copy)
+          ? mat2.copy([] as any, copy)
           : type == 'Matrix3f'
-          ? mat3.copy([], copy)
+          ? mat3.copy([] as any, copy)
           : type == 'Matrix4f'
-          ? mat4.copy([], copy)
+          ? mat4.copy([] as any, copy)
           : undefined;
       this.stack.pop();
     };
     this.uniforms[name] = uniform;
   };
-  legacygl.add_uniform_array = function (name, type, size) {
-    var uniform = {
+  legacygl.add_uniform_array = function (
+    name: string,
+    type: UniformType,
+    size: number
+  ) {
+    var uniform: any = {
       location: gl.getUniformLocation(this.shader.program, 'u_' + name),
       type: type,
       is_array: true,
@@ -145,15 +219,15 @@ export function get_legacygl(
       var func_name = 'uniform' + type;
       if (uniform.is_array || (type != '1f' && type != '1i')) func_name += 'v';
       if (type == 'Matrix2f' || type == 'Matrix3f' || type == 'Matrix4f') {
-        gl[func_name](uniform.location, false, passed_value);
-      } else gl[func_name](uniform.location, passed_value);
+        (gl as any)[func_name](uniform.location, false, passed_value);
+      } else (gl as any)[func_name](uniform.location, passed_value);
     }
   };
 
   // utility for vertex attributes
   legacygl.vertex_attributes = [];
-  legacygl.add_vertex_attribute = function (name, size) {
-    var vertex_attribute = {name: name, size: size};
+  legacygl.add_vertex_attribute = function (name: string, size: number) {
+    var vertex_attribute: VertexAttribute = {name: name, size: size};
     // initialize current value with 0
     vertex_attribute.current = [];
     for (var i = 0; i < size; ++i) vertex_attribute.current.push(0);
@@ -173,7 +247,7 @@ export function get_legacygl(
   // special treatment for vertex position attribute
   legacygl.add_vertex_attribute('vertex', 3);
   delete legacygl.vertex_attributes[0].current;
-  function vertex(x, y, z) {
+  function vertex(x: number, y: number, z: number) {
     for (var i = 0; i < this.vertex_attributes.length; ++i) {
       var vertex_attribute = this.vertex_attributes[i];
       var value =
@@ -203,7 +277,7 @@ export function get_legacygl(
   }
   legacygl.vertex = vertex;
   // begin and end
-  legacygl.begin = function (mode) {
+  legacygl.begin = function (mode: string) {
     this.set_uniforms();
     this.mode = mode;
     for (var i = 0; i < this.vertex_attributes.length; ++i) {
@@ -212,7 +286,7 @@ export function get_legacygl(
   };
   legacygl.end = function () {
     var drawcall = {
-      buffers: [],
+      buffers: [] as WebGLBuffer[],
       mode: this.mode == this.QUADS ? gl.TRIANGLES : this.mode,
       num_vertices: this.vertex_attributes[0].array.length / 3,
     };
@@ -237,7 +311,7 @@ export function get_legacygl(
           }
           vec3.sub_ip(v[1], v[0]);
           vec3.sub_ip(v[2], v[0]);
-          var n = vec3.cross([], v[1], v[2]);
+          var n = vec3.cross([] as any, v[1], v[2]);
           vec3.normalize_ip(n);
           for (var j = 0; j < 3; ++j)
             vertex_attribute.array.splice(3 * (3 * i + j), 3, n[0], n[1], n[2]);
@@ -271,7 +345,7 @@ export function get_legacygl(
   // display list
   legacygl.displists = {};
   legacygl.current_displist_name = null;
-  legacygl.newList = function (name) {
+  legacygl.newList = function (name: string) {
     var displist = this.displists[name];
     if (displist) {
       // delete existing buffers
@@ -293,7 +367,7 @@ export function get_legacygl(
   legacygl.endList = function () {
     this.current_displist_name = null;
   };
-  legacygl.callList = function (name) {
+  legacygl.callList = function (name: string) {
     var displist = this.displists[name];
     if (!displist) return;
     this.set_uniforms();
@@ -315,10 +389,10 @@ export function get_legacygl(
     }
   };
   // wrapper
-  legacygl.displist_wrapper = function (name) {
-    var wrapper = {};
+  legacygl.displist_wrapper = function (name: string) {
+    var wrapper: any = {};
     wrapper.is_valid = false;
-    wrapper.draw = function (drawfunc) {
+    wrapper.draw = function (drawfunc: () => void) {
       if (!this.is_valid) {
         legacygl.newList(name);
         drawfunc();
@@ -338,10 +412,10 @@ export function get_legacygl(
   legacygl.flags = {
     AUTO_NORMAL: false,
   };
-  legacygl.enable = function (flag) {
+  legacygl.enable = function (flag: string) {
     this.flags[flag] = true;
   };
-  legacygl.disable = function (flag) {
+  legacygl.disable = function (flag: string) {
     this.flags[flag] = false;
   };
   return legacygl;
