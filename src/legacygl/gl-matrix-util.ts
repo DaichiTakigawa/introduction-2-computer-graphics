@@ -1,43 +1,4 @@
-import {
-  glMatrix,
-  mat2,
-  mat2d,
-  mat3,
-  mat4,
-  quat,
-  quat2,
-  vec2,
-  vec3,
-  vec4,
-} from 'gl-matrix';
-
-// var mat2__, mat2d__, mat3__, mat4__, quat__, quat2__, vec2__, vec3__, vec4__;
-// {
-//   // a hack to remove the need to prefix each call by 'glMatrix.' (e.g. glMatrix.vec4.create())
-//   // https://github.com/toji/gl-matrix/releases/tag/v3.0.0
-//   // https://stackoverflow.com/questions/15931119#comment94655330_53514621
-//   // var {mat2, mat2d, mat3, mat4, quat, quat2, vec2, vec3, vec4} = glMatrix;
-//   // a hack to make mat2 etc. extensible
-//   // https://stackoverflow.com/questions/40089181
-//   mat2__ = Object.assign({}, mat2);
-//   mat2d__ = Object.assign({}, mat2d);
-//   mat3__ = Object.assign({}, mat3);
-//   mat4__ = Object.assign({}, mat4);
-//   quat__ = Object.assign({}, quat);
-//   quat2__ = Object.assign({}, quat2);
-//   vec2__ = Object.assign({}, vec2);
-//   vec3__ = Object.assign({}, vec3);
-//   vec4__ = Object.assign({}, vec4);
-// }
-// var mat2 = mat2__;
-// var mat2d = mat2d__;
-// var mat3 = mat3__;
-// var mat4 = mat4__;
-// var quat = quat__;
-// var quat2 = quat2__;
-// var vec2 = vec2__;
-// var vec3 = vec3__;
-// var vec4 = vec4__;
+import {mat2, mat3, mat4, quat, vec2, vec3, vec4} from 'gl-matrix';
 
 declare module 'gl-matrix' {
   export module mat2 {

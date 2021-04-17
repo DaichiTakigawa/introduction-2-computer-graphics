@@ -1,9 +1,9 @@
 import {vec2, vec3, vec4, mat4} from 'gl-matrix';
-import '../legacygl/gl-matrix-util';
 import {glu} from '../legacygl/glu';
 import {get_camera, Camera} from '../legacygl/camera';
 import {get_drawutil, Drawutil} from '../legacygl/drawutil';
 import {get_legacygl, LegacyGL} from '../legacygl/legacygl';
+import '../legacygl/gl-matrix-util';
 import '../legacygl/util';
 
 declare module '../legacygl/legacygl' {
