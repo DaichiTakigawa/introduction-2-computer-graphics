@@ -32,8 +32,8 @@ export function get_legacygl(
 
   // utility for uniforms
   legacygl.uniforms = {};
-  legacygl.add_uniform = function (name, type) {
-    var uniform = {
+  legacygl.add_uniform = function (name: any, type: any) {
+    var uniform: any = {
       location: gl.getUniformLocation(this.shader.program, 'u_' + name),
       type: type,
       is_array: false,
