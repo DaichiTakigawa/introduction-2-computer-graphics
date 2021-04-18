@@ -17,15 +17,18 @@ jobs:
 
       - run: yarn build
 
-      - name: push
+      - name: commit & push
         env: # Or as an environment variable
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NAME: ${{ secrets.NAME }}
           EMAIL: ${{ secrets.EMAIL }}
         run: |
-          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com//DaichiTakigawa/introduction-2-computer-graphics
-          git config --global user.name "${NAME}"
-          git config --global user.email "${EMAIL}"
-          git add .
-          git commit -m "auto update from github actions." -a
-          git push origin main
+          git add -N . # 新規ファイルを含める
+          if ! git diff --exit-code --quiet
+          then
+            git add --update
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git commit -m "auto update from github actions."
+            git push
+          fi
