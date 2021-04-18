@@ -24,7 +24,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
         run: |
           git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/introduction-2-computer-graphics
-          git config --global user.name "${USERNAME}"
+          git config --global user.name "${NAME}"
           git config --global user.email "${EMAIL}"
           git add .
           git commit -m "auto update from github actions." -a
