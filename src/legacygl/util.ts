@@ -8,10 +8,10 @@ declare global {
 }
 
 HTMLCanvasElement.prototype.get_mousepos = function (event, flip_y) {
-  var totalOffsetX = 0;
-  var totalOffsetY = 0;
+  let totalOffsetX = 0;
+  let totalOffsetY = 0;
   for (
-    var currentElement = this;
+    let currentElement = this;
     currentElement;
     currentElement = currentElement.offsetParent
   ) {
@@ -19,15 +19,15 @@ HTMLCanvasElement.prototype.get_mousepos = function (event, flip_y) {
     totalOffsetY += currentElement.offsetTop;
   }
   for (
-    var currentElement = this;
+    let currentElement = this;
     currentElement && currentElement != document.body;
     currentElement = currentElement.parentElement
   ) {
     totalOffsetX -= currentElement.scrollLeft;
     totalOffsetY -= currentElement.scrollTop;
   }
-  var x = event.pageX - totalOffsetX;
-  var y = event.pageY - totalOffsetY;
+  let x = event.pageX - totalOffsetX;
+  let y = event.pageY - totalOffsetY;
   if (flip_y === undefined || flip_y)
     // flip y by default
     y = this.height - y;
@@ -44,7 +44,7 @@ export function verify_filename_extension(
   filename: string,
   supported_extensions: any
 ) {
-  var given_extension = get_filename_extension(filename);
+  let given_extension = get_filename_extension(filename);
   if (
     supported_extensions.some(function (x: string) {
       return x == given_extension;

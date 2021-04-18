@@ -49,27 +49,27 @@ export class Camera {
   }
 
   move(mousepos: vec2) {
-    var diff = vec2.scale_ip(
+    let diff = vec2.scale_ip(
       vec2.sub(vec2.create(), mousepos, this.prevpos),
       1 / this.viewport_width
     );
     if (this.mode == 'rotate') {
-      var theta = vec2.scale(vec2.create(), diff, 1.7 * Math.PI);
-      var rot_hrz = quat.setAxisAngle(quat.create(), this.up, -theta[0]);
-      var rot_vrt = quat.setAxisAngle(quat.create(), this.right(), theta[1]);
-      var rot = quat.mul(quat.create(), rot_vrt, rot_hrz);
+      let theta = vec2.scale(vec2.create(), diff, 1.7 * Math.PI);
+      let rot_hrz = quat.setAxisAngle(quat.create(), this.up, -theta[0]);
+      let rot_vrt = quat.setAxisAngle(quat.create(), this.right(), theta[1]);
+      let rot = quat.mul(quat.create(), rot_vrt, rot_hrz);
       this.eye = vec3.transformQuat(vec3.create(), this.center_to_eye(), rot);
       vec3.add_ip(this.eye, this.center);
       vec3.transformQuat_ip(this.up, rot);
     } else if (this.mode == 'pan') {
-      var s = vec2.scale(vec2.create(), diff, vec3.len(this.center_to_eye()));
-      var d0 = vec3.scale(vec3.create(), this.right(), -s[0]);
-      var d1 = vec3.scale(vec3.create(), this.up, -s[1]);
-      var d = vec3.add(vec3.create(), d0, d1);
+      let s = vec2.scale(vec2.create(), diff, vec3.len(this.center_to_eye()));
+      let d0 = vec3.scale(vec3.create(), this.right(), -s[0]);
+      let d1 = vec3.scale(vec3.create(), this.up, -s[1]);
+      let d = vec3.add(vec3.create(), d0, d1);
       vec3.add_ip(this.eye, d);
       vec3.add_ip(this.center, d);
     } else if (this.mode == 'zoom') {
-      var d = vec3.scale(
+      let d = vec3.scale(
         vec3.create(),
         this.eye_to_center(),
         diff[0] - diff[1]

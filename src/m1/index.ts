@@ -1,22 +1,17 @@
 import {vec2, vec3, vec4, mat4} from 'gl-matrix';
-import {glu} from '../legacygl/glu';
-import {get_camera, Camera} from '../legacygl/camera';
-import {get_drawutil, Drawutil} from '../legacygl/drawutil';
-import {get_legacygl, LegacyGL} from '../legacygl/legacygl';
-import '../legacygl/gl-matrix-util';
-import '../legacygl/util';
+import {
+  glu,
+  get_camera,
+  get_drawutil,
+  get_legacygl,
+  Camera,
+  Drawutil,
+  LegacyGL,
+} from '../legacygl';
 
-declare module '../legacygl/legacygl' {
+declare module '../legacygl' {
   interface LegacyGL {
-    color(r: number, g: number, b: number): void;
     vertex2(p: vec2): void;
-  }
-}
-
-declare global {
-  interface Window {
-    draw(): void;
-    init(): void;
   }
 }
 
@@ -29,21 +24,23 @@ var p0: vec2, p1: vec2, p2: vec2;
 var selected: vec2 = null;
 
 function eval_quadratic_bezier(p0: vec2, p1: vec2, p2: vec2, t: number) {
-  return vec2.scaleAndAdd_ip(vec2.scale([0, 0], p0, 1 - t), p2 as vec2, t); // TODO
+  let p01 = vec2.scaleAndAdd_ip(vec2.scale(vec2.create(), p0, 1 - t), p1, t);
+  let p12 = vec2.scaleAndAdd_ip(vec2.scale(vec2.create(), p1, 1 - t), p2, t);
+  return vec2.scaleAndAdd_ip(vec2.scale(vec2.create(), p01, 1 - t), p12, t);
 }
 
 function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   // projection & camera position
   mat4.perspective(
-    legacygl.uniforms.projection.value,
+    legacygl.uniforms.projection.value as mat4,
     Math.PI / 6,
     canvas.aspect_ratio(),
     0.1,
     1000
   );
   var modelview = legacygl.uniforms.modelview;
-  camera.lookAt(modelview.value);
+  camera.lookAt(modelview.value as mat4);
 
   // xy grid
   gl.lineWidth(1);
@@ -53,19 +50,20 @@ function draw() {
   // draw line segments composing curve
   legacygl.color(1, 0.6, 0.2);
   legacygl.begin(gl.LINE_STRIP);
-  var numsteps = Number(
-    (document.getElementById('input_numsteps') as HTMLInputElement).value
-  );
+  let input_numsteps = document.getElementById(
+    'input_numsteps'
+  ) as HTMLInputElement;
+  var numsteps = Number(input_numsteps.value);
   for (var i = 0; i <= numsteps; ++i) {
     var t = i / numsteps;
     legacygl.vertex2(eval_quadratic_bezier(p0, p1, p2, t));
   }
   legacygl.end();
   // draw sample points
-  if (
-    (document.getElementById('input_show_samplepoints') as HTMLInputElement)
-      .checked
-  ) {
+  let input_show_samplepoints = document.getElementById(
+    'input_show_samplepoints'
+  ) as HTMLInputElement;
+  if (input_show_samplepoints.checked) {
     legacygl.begin(gl.POINTS);
     for (var i = 0; i <= numsteps; ++i) {
       var t = i / numsteps;
@@ -74,10 +72,10 @@ function draw() {
     legacygl.end();
   }
   // draw control points
-  if (
-    (document.getElementById('input_show_controlpoints') as HTMLInputElement)
-      .checked
-  ) {
+  let input_show_controlpoints = document.getElementById(
+    'input_show_controlpoints'
+  ) as HTMLInputElement;
+  if (input_show_controlpoints.checked) {
     legacygl.color(0.2, 0.5, 1);
     legacygl.begin(gl.LINE_STRIP);
     legacygl.vertex2(p0);
@@ -144,8 +142,8 @@ function init() {
     for (var i = 0; i < 3; ++i) {
       var object_win = glu.project(
         [points[i][0], points[i][1], 0],
-        legacygl.uniforms.modelview.value,
-        legacygl.uniforms.projection.value,
+        legacygl.uniforms.modelview.value as mat4,
+        legacygl.uniforms.projection.value as mat4,
         viewport
       );
       var dist = vec2.dist(mouse_win as vec2, object_win as vec2);
@@ -167,8 +165,8 @@ function init() {
       mouse_win.push(1);
       var mouse_obj = glu.unproject(
         mouse_win as vec3,
-        legacygl.uniforms.modelview.value,
-        legacygl.uniforms.projection.value,
+        legacygl.uniforms.modelview.value as mat4,
+        legacygl.uniforms.projection.value as mat4,
         viewport
       );
       // just reuse the same code as the 3D case
@@ -197,6 +195,13 @@ function init() {
   // init OpenGL settings
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(1, 1, 1, 1);
+}
+
+declare global {
+  interface Window {
+    draw(): void;
+    init(): void;
+  }
 }
 
 window.draw = draw;
