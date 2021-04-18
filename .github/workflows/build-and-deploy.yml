@@ -23,14 +23,15 @@ jobs:
           NAME: ${{ secrets.NAME }}
           EMAIL: ${{ secrets.EMAIL }}
         run: |
+          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/DaichiTakigawa/introduction-2-computer-graphics
+          git config --global user.name "${NAME}"
+          git config --global user.email "${EMAIL}"
+          git config --global pull.rebase false
+          git pull origin main
           git add -N . # 新規ファイルを含める
           if ! git diff --exit-code --quiet
           then
-            git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/DaichiTakigawa/introduction-2-computer-graphics
-            git config --global user.name "${NAME}"
-            git config --global user.email "${EMAIL}"
             git add --update
             git commit -m "auto update from github actions."
-            git pull origin main
             git push origin main
           fi
