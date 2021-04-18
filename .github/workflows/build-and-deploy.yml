@@ -32,5 +32,5 @@ jobs:
           if ! git diff --cached --exit-code --quiet; then
             git add --update
             git commit -m "auto update from github actions."
-            git push origin main
+            git push origin  HEAD:main
           fi
