@@ -28,5 +28,4 @@ jobs:
           git config --global user.email "${EMAIL}"
           git add .
           git commit -m "auto update from github actions." -a
-          git pull
           git push origin main
