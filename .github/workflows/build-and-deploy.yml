@@ -26,7 +26,7 @@ jobs:
           git add -N . # 新規ファイルを含める
           if ! git diff --exit-code --quiet
           then
-            git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com//***/introduction-2-computer-graphics
+            git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/DaichiTakigawa/introduction-2-computer-graphics
             git config --global user.name "${NAME}"
             git config --global user.email "${EMAIL}"
             git add --update
