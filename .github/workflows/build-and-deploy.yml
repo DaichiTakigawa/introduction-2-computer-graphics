@@ -18,8 +18,12 @@ jobs:
       - run: yarn build
 
       - name: push
+        env: # Or as an environment variable
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ secrets.NAME }}
+          EMAIL: ${{ secrets.EMAIL }}
         run: |
-          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}
+          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/introduction-2-computer-graphics
           git config --global user.name "${USERNAME}"
           git config --global user.email "${EMAIL}"
           git add .
