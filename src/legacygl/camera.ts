@@ -5,14 +5,19 @@ type CameraMode = 'none' | 'rotate' | 'pan' | 'zoom';
 export class Camera {
   private viewport_width: number;
 
-  eye: vec3 = [0, 0, 1];
-  center: vec3 = [0, 0, 0];
-  up: vec3 = [0, 1, 0];
-  mode: CameraMode = 'none';
-  prevpos = vec2.create();
+  eye: vec3;
+  center: vec3;
+  up: vec3;
+  mode: CameraMode;
+  prevpos: vec2;
 
   constructor(viewport_width: number) {
     this.viewport_width = viewport_width;
+    this.eye = [0, 0, 1];
+    this.center = [0, 0, 0];
+    this.up = [0, 1, 0];
+    this.mode = 'none';
+    this.prevpos = vec2.create();
   }
 
   center_to_eye() {
