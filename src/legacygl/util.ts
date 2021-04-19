@@ -2,7 +2,7 @@ import {vec2} from 'gl-matrix';
 
 declare global {
   interface HTMLCanvasElement {
-    get_mousepos(event: MouseEvent, flip_y?: any): vec2;
+    get_mousepos(event: MouseEvent, flip_y?: boolean): vec2;
     aspect_ratio(): number;
   }
 }
