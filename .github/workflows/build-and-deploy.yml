@@ -3,7 +3,7 @@ name: build and deploy
 on:
   push:
     branches:
-      - main
+      - deploy
 
 jobs:
   build-page-and-deploy:
@@ -18,7 +18,7 @@ jobs:
       - run: yarn build
 
       - name: commit & push
-        env: # Or as an environment variable
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NAME: ${{ secrets.NAME }}
           EMAIL: ${{ secrets.EMAIL }}
@@ -28,9 +28,12 @@ jobs:
           git config --global user.email "${EMAIL}"
           git config --global pull.rebase false
           git pull origin main
+          git checkout main
+          cp -r docs/* .
+          rm -r docs
           git add .
           if ! git diff --cached --exit-code --quiet; then
             git add --update
-            git commit -m "auto update from github actions."
+            git commit -m "Automated deployment: $(date -u)"
             git push origin  HEAD:main
           fi
