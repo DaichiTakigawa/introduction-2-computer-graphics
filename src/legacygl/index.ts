@@ -1,6 +1,10 @@
 import '../legacygl/gl-matrix-util';
-export * from './glu';
-export * from './camera';
-export * from './drawutil';
 export * from './legacygl';
+export * from './boundingbox';
+export * from './camera';
+export * from './colormap';
+export * from './drawutil';
+export * from './glu';
+export * from './halfedge';
+export * from './meshio';
 export * from './util';
