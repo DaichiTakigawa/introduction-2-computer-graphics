@@ -10,10 +10,6 @@ module.exports = {
     'prettier/@typescript-eslint',
     'eslint-config-prettier',
   ],
-  globals: {
-    Atomics: 'readonly',
-    SharedArrayBuffer: 'readonly',
-  },
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2018,

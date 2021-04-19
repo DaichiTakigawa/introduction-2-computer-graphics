@@ -50,12 +50,3 @@ GLSLにはgl_で始まる様々なビルトイン変数が存在する。
     ```
 - IBO(index buffer object)  
 インデックスバッファーでは、頂点をどのような順番で結ぶかを指定できる。
-
-
-
-
-## legacygl.js
-
-- legacygl  
-  legacygl.shader は二つの WebGLShader(頂点シェーダーとフラグメントシェーダー)と WebGLProgram を持つ。
-  WebGLProgram は頂点シェーダーとフラグメントシェーダーをまとめたもの。
