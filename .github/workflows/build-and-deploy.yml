@@ -28,9 +28,9 @@ jobs:
           git config --global user.email "${EMAIL}"
           git config --global pull.rebase false
           git checkout main
-          ls -A | grep -v docs | grep -vw .git | xargs rm -rf
-          cp -r docs/* .
-          rm -r docs
+          ls -A | grep -v dist | grep -vw .git | xargs rm -rf
+          cp -r dist/* .
+          rm -r dist
           git add .
           if ! git diff --cached --exit-code --quiet; then
             git add --update
