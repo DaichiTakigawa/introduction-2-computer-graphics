@@ -27,10 +27,16 @@ jobs:
           git config --global user.name "${NAME}"
           git config --global user.email "${EMAIL}"
           git config --global pull.rebase false
+          echo "before checkout"
+          ll
           git pull origin main
           git checkout main
+          echo "after checkout"
+          ll
           cp -r docs/* .
           rm -r docs
+          echo "after cp"
+          ll
           git add .
           if ! git diff --cached --exit-code --quiet; then
             git add --update
