@@ -1,6 +1,6 @@
 var path = require('path');
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: {
     'm1/index.js': './src/m1/index.ts',
   },
