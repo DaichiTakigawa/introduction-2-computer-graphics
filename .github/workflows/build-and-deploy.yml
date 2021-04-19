@@ -30,6 +30,7 @@ jobs:
           echo "before checkout"
           ls -la
           git pull origin main
+          echo "pull origin finished"
           git checkout main
           echo "after checkout"
           ls -la
