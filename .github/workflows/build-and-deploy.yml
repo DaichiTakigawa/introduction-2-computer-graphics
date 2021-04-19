@@ -29,10 +29,10 @@ jobs:
           git config --global pull.rebase false
           echo "before checkout"
           ls -la
-          echo "pull origin finished"
           git checkout main
           echo "after checkout"
           ls -la
+          ls | grep -v -E "^docs" | xargs rm -rf
           cp -r docs/* .
           rm -r docs
           echo "after cp"
