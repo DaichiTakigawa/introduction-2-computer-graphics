@@ -17,13 +17,19 @@
     "mousepos",
     "nonmanifold",
     "numsteps",
+    "parula",
     "prevpos",
+    "quadmesh",
     "slerp",
     "slicepos",
     "texcoord",
     "texcoords",
+    "trimesh",
     "unproject",
     "xygrid",
-    "xyzw"
+    "xyzaxis",
+    "xyzw",
+    "yzgrid",
+    "zxgrid"
   ]
 }

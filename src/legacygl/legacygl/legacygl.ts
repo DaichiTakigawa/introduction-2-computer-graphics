@@ -43,10 +43,10 @@ export class LegacyGL {
     // special treatment for vertex position attribute
     this.add_vertex_attribute('vertex', 3);
     delete this.vertex_attributes[0].current;
-    let vertex = function (x: number, y: number, z: number) {
+    const vertex = function (x: number, y: number, z: number) {
       for (let i = 0; i < this.vertex_attributes.length; ++i) {
-        let vertex_attribute = this.vertex_attributes[i];
-        let value =
+        const vertex_attribute = this.vertex_attributes[i];
+        const value =
           vertex_attribute.name == 'vertex'
             ? [x, y, z]
             : vertex_attribute.current;
@@ -54,15 +54,15 @@ export class LegacyGL {
           vertex_attribute.array.push(value[j]);
       }
       // emulate GL_QUADS
-      let num_vertices = this.vertex_attributes[0].array.length / 3;
+      const num_vertices = this.vertex_attributes[0].array.length / 3;
       if (this.mode == this.QUADS && num_vertices % 6 == 4) {
         // 6 vertices per quad (= 2 triangles)
-        let v0 = num_vertices - 4;
+        const v0 = num_vertices - 4;
         // add 2 vertices identical to [v0] and [v0+2] to construct the other half of the quad
         for (let k = 0; k < 3; ++k) {
           if (k == 1) continue;
           for (let i = 0; i < this.vertex_attributes.length; ++i) {
-            let vertex_attribute = this.vertex_attributes[i];
+            const vertex_attribute = this.vertex_attributes[i];
             for (let j = 0; j < vertex_attribute.size; ++j)
               vertex_attribute.array.push(
                 vertex_attribute.array[vertex_attribute.size * (v0 + k) + j]
@@ -85,27 +85,33 @@ export class LegacyGL {
   }
 
   add_uniform(name: string, type: UniformType) {
-    let location = this.gl.getUniformLocation(this.shader.program, 'u_' + name);
-    let uniform = new Uniform(location, type);
+    const location = this.gl.getUniformLocation(
+      this.shader.program,
+      'u_' + name
+    );
+    const uniform = new Uniform(location, type);
     this.uniforms[name] = uniform;
   }
 
   add_uniform_array(name: string, type: UniformType, size: number) {
-    let location = this.gl.getUniformLocation(this.shader.program, 'u_' + name);
-    let uniform = new ArrayUniform(location, type, size);
+    const location = this.gl.getUniformLocation(
+      this.shader.program,
+      'u_' + name
+    );
+    const uniform = new ArrayUniform(location, type, size);
     this.uniforms[name] = uniform;
   }
 
   set_uniforms() {
-    for (let name in this.uniforms) {
-      let uniform = this.uniforms[name];
-      let type = uniform.type;
+    for (const name in this.uniforms) {
+      const uniform = this.uniforms[name];
+      const type = uniform.type;
       // in case of array type, flatten values
       let passed_value;
       if (uniform.is_array) {
         passed_value = [];
         for (let i = 0; i < uniform.value.length; ++i) {
-          let v: any = uniform.value[i];
+          const v: any = uniform.value[i];
           if (type != '1f' && type != '1i') {
             for (let j = 0; j < v.length; ++j) passed_value.push(v[j]);
           } else {
@@ -116,7 +122,7 @@ export class LegacyGL {
         passed_value = uniform.value;
       }
       // call appropriate WebGL function depending on data type
-      var func_name = 'uniform' + type;
+      let func_name = 'uniform' + type;
       if (uniform.is_array || (type != '1f' && type != '1i')) func_name += 'v';
       if (type == 'Matrix2f' || type == 'Matrix3f' || type == 'Matrix4f') {
         (this.gl as any)[func_name](uniform.location, false, passed_value);
@@ -126,13 +132,16 @@ export class LegacyGL {
 
   add_vertex_attribute(name: string, size: number) {
     // shader location
-    let location = this.gl.getAttribLocation(this.shader.program, 'a_' + name);
-    let vertex_attribute = new VertexAttribute(location, name, size);
+    const location = this.gl.getAttribLocation(
+      this.shader.program,
+      'a_' + name
+    );
+    const vertex_attribute = new VertexAttribute(location, name, size);
     // initialize current value with 0
     for (let i = 0; i < size; ++i) vertex_attribute.current.push(0);
     // register current value setter func
-    (this as any)[name] = function () {
-      for (let i = 0; i < size; ++i) vertex_attribute.current[i] = arguments[i];
+    (this as any)[name] = function (...args: number[]) {
+      for (let i = 0; i < size; ++i) vertex_attribute.current[i] = args[i];
     };
     this.gl.enableVertexAttribArray(vertex_attribute.location);
     // add to the list
@@ -148,15 +157,15 @@ export class LegacyGL {
   }
 
   end() {
-    let gl = this.gl;
-    let drawcall = {
+    const gl = this.gl;
+    const drawcall = {
       buffers: [] as WebGLBuffer[],
       mode: this.mode == this.QUADS ? gl.TRIANGLES : this.mode,
       num_vertices: this.vertex_attributes[0].array.length / 3,
     };
     for (let k = 0; k < this.vertex_attributes.length; ++k) {
-      let vertex_attribute = this.vertex_attributes[k];
-      let buffer = gl.createBuffer();
+      const vertex_attribute = this.vertex_attributes[k];
+      const buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       drawcall.buffers.push(buffer);
       // simulate GL_AUTO_NORMAL
@@ -166,9 +175,9 @@ export class LegacyGL {
         this.flags.AUTO_NORMAL
       ) {
         for (let i = 0; i < drawcall.num_vertices / 3; ++i) {
-          let v: vec3[] = [];
+          const v: vec3[] = [];
           for (let j = 0; j < 3; ++j) {
-            let slicepos = 3 * (3 * i + j);
+            const slicepos = 3 * (3 * i + j);
             v.push(
               this.vertex_attributes[0].array.slice(
                 slicepos,
@@ -178,7 +187,7 @@ export class LegacyGL {
           }
           vec3.sub_ip(v[1], v[0]);
           vec3.sub_ip(v[2], v[0]);
-          let n = vec3.cross(vec3.create(), v[1], v[2]);
+          const n = vec3.cross(vec3.create(), v[1], v[2]);
           vec3.normalize_ip(n);
           for (let j = 0; j < 3; ++j) {
             vertex_attribute.array.splice(3 * (3 * i + j), 3, n[0], n[1], n[2]);
@@ -211,11 +220,11 @@ export class LegacyGL {
   }
 
   newList(name: string) {
-    let displist = this.displists[name];
+    const displist = this.displists[name];
     if (displist) {
       // delete existing buffers
       for (let i = 0; i < displist.drawcalls.length; ++i) {
-        let drawcall = displist.drawcalls[i];
+        const drawcall = displist.drawcalls[i];
         for (let j = 0; j < drawcall.buffers.length; ++j) {
           this.gl.deleteBuffer(drawcall.buffers[j]);
         }
@@ -235,14 +244,14 @@ export class LegacyGL {
   }
 
   callList(name: string) {
-    let gl = this.gl;
-    let displist = this.displists[name];
+    const gl = this.gl;
+    const displist = this.displists[name];
     if (!displist) return;
     this.set_uniforms();
     for (let k = 0; k < displist.drawcalls.length; ++k) {
-      let drawcall = displist.drawcalls[k];
+      const drawcall = displist.drawcalls[k];
       for (let i = 0; i < this.vertex_attributes.length; ++i) {
-        let vertex_attribute = this.vertex_attributes[i];
+        const vertex_attribute = this.vertex_attributes[i];
         gl.bindBuffer(gl.ARRAY_BUFFER, drawcall.buffers[i]);
         gl.vertexAttribPointer(
           vertex_attribute.location,
@@ -258,8 +267,9 @@ export class LegacyGL {
   }
 
   displist_wrapper(name: string) {
-    let legacygl = this;
-    let wrapper = {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const legacygl = this;
+    const wrapper = {
       is_valid: false,
       draw(drawfunc: () => void) {
         if (!this.is_valid) {
@@ -287,10 +297,12 @@ export class LegacyGL {
   }
 }
 
+/* eslint-disable no-unused-vars */
 export interface LegacyGL {
   vertex?(x: number, y: number, z: number): void;
   color?(r: number, g: number, b: number): void;
 }
+/* eslint-enable no-unused-vars */
 
 export function get_legacygl(
   gl: WebGLRenderingContext,

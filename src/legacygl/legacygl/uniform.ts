@@ -33,7 +33,7 @@ export class ArrayUniform implements UniformBase {
     this.type = type;
     this.is_array = true;
     function make_default_value() {
-      var default_value =
+      const default_value =
         type == '1f' || type == '1i'
           ? 0
           : type == '2f' || type == '2i'
@@ -52,7 +52,7 @@ export class ArrayUniform implements UniformBase {
       return default_value;
     }
     this.value = [];
-    for (var i = 0; i < size; ++i) this.value.push(make_default_value());
+    for (let i = 0; i < size; ++i) this.value.push(make_default_value());
   }
 }
 
@@ -87,7 +87,7 @@ export class Uniform implements UniformBase {
   }
 
   push() {
-    var copy =
+    const copy =
       this.type == '1f' || this.type == '1i'
         ? (this.value as number)
         : this.type == '2f' || this.type == '2i'
@@ -107,7 +107,7 @@ export class Uniform implements UniformBase {
   }
 
   pop() {
-    var copy = this.stack[this.stack.length - 1];
+    const copy = this.stack[this.stack.length - 1];
     this.value =
       this.type == '1f' || this.type == '1i'
         ? (copy as number)

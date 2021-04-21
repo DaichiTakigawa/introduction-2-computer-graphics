@@ -11,6 +11,7 @@ HTMLCanvasElement.prototype.get_mousepos = function (event, flip_y) {
   let totalOffsetX = 0;
   let totalOffsetY = 0;
   for (
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let currentElement = this;
     currentElement;
     currentElement = currentElement.offsetParent
@@ -19,6 +20,7 @@ HTMLCanvasElement.prototype.get_mousepos = function (event, flip_y) {
     totalOffsetY += currentElement.offsetTop;
   }
   for (
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let currentElement = this;
     currentElement && currentElement != document.body;
     currentElement = currentElement.parentElement
@@ -26,7 +28,7 @@ HTMLCanvasElement.prototype.get_mousepos = function (event, flip_y) {
     totalOffsetX -= currentElement.scrollLeft;
     totalOffsetY -= currentElement.scrollTop;
   }
-  let x = event.pageX - totalOffsetX;
+  const x = event.pageX - totalOffsetX;
   let y = event.pageY - totalOffsetY;
   if (flip_y === undefined || flip_y)
     // flip y by default
@@ -38,13 +40,13 @@ HTMLCanvasElement.prototype.aspect_ratio = function () {
 };
 
 export function get_filename_extension(filename: string) {
-  return '.' + filename.toLowerCase().split(/\#|\?/)[0].split('.').pop().trim(); // https://stackoverflow.com/a/47767860
+  return '.' + filename.toLowerCase().split(/#|\?/)[0].split('.').pop().trim(); // https://stackoverflow.com/a/47767860
 }
 export function verify_filename_extension(
   filename: string,
   supported_extensions: any
 ) {
-  let given_extension = get_filename_extension(filename);
+  const given_extension = get_filename_extension(filename);
   if (
     supported_extensions.some(function (x: string) {
       return x == given_extension;

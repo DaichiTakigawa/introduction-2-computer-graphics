@@ -9,13 +9,11 @@ import {
   LegacyGL,
 } from '../legacygl';
 
-/* eslint-disable no-unused-vars */
 declare module '../legacygl' {
   interface LegacyGL {
     vertex2(p: vec2): void;
   }
 }
-/* eslint-enable no-unused-vars */
 
 let gl: WebGLRenderingContext;
 let canvas: HTMLCanvasElement;
@@ -199,14 +197,12 @@ function init() {
   gl.clearColor(1, 1, 1, 1);
 }
 
-/* eslint-disable no-unused-vars */
 declare global {
   interface Window {
     draw(): void;
     init(): void;
   }
 }
-/* eslint-enable no-unused-vars */
 
 window.draw = draw;
 window.init = init;

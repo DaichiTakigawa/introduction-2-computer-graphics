@@ -1,7 +1,9 @@
 import {mat2, mat3, mat4, quat, vec2, vec3, vec4} from 'gl-matrix';
 
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-namespace */
 declare module 'gl-matrix' {
-  export module mat2 {
+  export namespace mat2 {
     export function add_ip(a: mat2, b: mat2): mat2;
     export function adjoint_ip(a: mat2): mat2;
     export function invert_ip(a: mat2): mat2;
@@ -12,7 +14,7 @@ declare module 'gl-matrix' {
     export function transpose_ip(a: mat2): mat2;
   }
 
-  export module mat3 {
+  export namespace mat3 {
     export function add_ip(a: mat3, b: mat3): mat3;
     export function adjoint_ip(a: mat3): mat3;
     export function invert_ip(a: mat3): mat3;
@@ -24,7 +26,7 @@ declare module 'gl-matrix' {
     export function transpose_ip(a: mat3): mat3;
   }
 
-  export module mat4 {
+  export namespace mat4 {
     export function add_ip(a: mat4, b: mat4): mat4;
     export function adjoint_ip(a: mat4): mat4;
     export function invert_ip(a: mat4): mat4;
@@ -46,7 +48,7 @@ declare module 'gl-matrix' {
     ): mat4;
   }
 
-  export module vec2 {
+  export namespace vec2 {
     export function add_ip(a: vec2, b: vec2): vec2;
     export function div_ip(a: vec2, b: vec2): vec2;
     export function divide_ip(a: vec2, b: vec2): vec2;
@@ -67,7 +69,7 @@ declare module 'gl-matrix' {
     export function transformMat4_ip(a: vec2, m: mat4): vec2;
   }
 
-  export module vec3 {
+  export namespace vec3 {
     export function add_ip(a: vec3, b: vec3): vec3;
     export function cross_ip(a: vec3, b: vec3): vec3;
     export function div_ip(a: vec3, b: vec3): vec3;
@@ -88,7 +90,7 @@ declare module 'gl-matrix' {
     export function transformQuat_ip(a: vec3, q: quat): vec3;
   }
 
-  export module vec4 {
+  export namespace vec4 {
     export function add_ip(a: vec4, b: vec4): vec4;
     export function div_ip(a: vec4, b: vec4): vec4;
     export function divide_ip(a: vec4, b: vec4): vec4;
@@ -107,7 +109,7 @@ declare module 'gl-matrix' {
     export function transformQuat_ip(a: vec4, q: quat): vec4;
   }
 
-  export module quat {
+  export namespace quat {
     export function add_ip(a: vec4, b: vec4): vec4;
     export function calculateW_ip(a: quat): quat;
     export function conjugate_ip(a: quat): quat;
@@ -123,6 +125,8 @@ declare module 'gl-matrix' {
     export function slerp_ip(a: quat, b: quat, t: number): quat;
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
+/* eslint-enable no-unused-vars */
 
 // mat2 in-place versions
 mat2.add_ip = function (a, b) {

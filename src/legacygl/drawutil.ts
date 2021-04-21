@@ -25,7 +25,7 @@ export function get_drawutil(
   gl: WebGLRenderingContext,
   legacygl: LegacyGL
 ): Drawutil {
-  let drawutil: any = {};
+  const drawutil: any = {};
   drawutil.xyzaxis = function () {
     legacygl.begin(gl.LINES);
     legacygl.color(1, 0, 0);
@@ -77,16 +77,16 @@ export function get_drawutil(
     legacygl.begin(mode == 'line' ? gl.LINES : legacygl.QUADS);
     for (let f = 0; f < faces.length / 4; ++f) {
       for (let i = 0; i < 4; ++i) {
-        let v0 = faces[4 * f + i];
-        let x0 = vertices[3 * v0];
-        let y0 = vertices[3 * v0 + 1];
-        let z0 = vertices[3 * v0 + 2];
+        const v0 = faces[4 * f + i];
+        const x0 = vertices[3 * v0];
+        const y0 = vertices[3 * v0 + 1];
+        const z0 = vertices[3 * v0 + 2];
         legacygl.vertex(x0, y0, z0);
         if (mode == 'line') {
-          let v1 = faces[4 * f + ((i + 1) % 4)];
-          let x1 = vertices[3 * v1];
-          let y1 = vertices[3 * v1 + 1];
-          let z1 = vertices[3 * v1 + 2];
+          const v1 = faces[4 * f + ((i + 1) % 4)];
+          const x1 = vertices[3 * v1];
+          const y1 = vertices[3 * v1 + 1];
+          const z1 = vertices[3 * v1 + 2];
           legacygl.vertex(x1, y1, z1);
         }
       }
@@ -101,16 +101,16 @@ export function get_drawutil(
     legacygl.begin(mode == 'line' ? gl.LINES : gl.TRIANGLES);
     for (let f = 0; f < faces.length / 3; ++f) {
       for (let i = 0; i < 3; ++i) {
-        let v0 = faces[3 * f + i];
-        let x0 = vertices[3 * v0];
-        let y0 = vertices[3 * v0 + 1];
-        let z0 = vertices[3 * v0 + 2];
+        const v0 = faces[3 * f + i];
+        const x0 = vertices[3 * v0];
+        const y0 = vertices[3 * v0 + 1];
+        const z0 = vertices[3 * v0 + 2];
         legacygl.vertex(x0, y0, z0);
         if (mode == 'line') {
-          let v1 = faces[3 * f + ((i + 1) % 3)];
-          let x1 = vertices[3 * v1];
-          let y1 = vertices[3 * v1 + 1];
-          let z1 = vertices[3 * v1 + 2];
+          const v1 = faces[3 * f + ((i + 1) % 3)];
+          const x1 = vertices[3 * v1];
+          const y1 = vertices[3 * v1 + 1];
+          const z1 = vertices[3 * v1 + 2];
           legacygl.vertex(x1, y1, z1);
         }
       }
@@ -118,7 +118,7 @@ export function get_drawutil(
     legacygl.end();
   };
   drawutil.cube = function (mode: string, size: number) {
-    let r = size / 2;
+    const r = size / 2;
     this.quadmesh(
       mode,
       [
@@ -179,12 +179,12 @@ export function get_drawutil(
   };
   drawutil.circle = function (mode: string, size: number, numdiv?: number) {
     if (!numdiv) numdiv = 12;
-    let r = size / 2;
+    const r = size / 2;
     legacygl.begin(mode == 'line' ? gl.LINE_LOOP : gl.TRIANGLE_FAN);
     for (let i = 0; i < numdiv; ++i) {
-      let theta = (i * 2 * Math.PI) / numdiv;
-      let x = r * Math.cos(theta);
-      let y = r * Math.sin(theta);
+      const theta = (i * 2 * Math.PI) / numdiv;
+      const x = r * Math.cos(theta);
+      const y = r * Math.sin(theta);
       legacygl.vertex(x, y, 0);
     }
     legacygl.end();
@@ -196,19 +196,19 @@ export function get_drawutil(
     stacks: number
   ) {
     function angle2pos(theta: number, phi: number) {
-      let x = radius * Math.cos(theta) * Math.sin(phi);
-      let y = radius * Math.sin(theta) * Math.sin(phi);
-      let z = radius * Math.cos(phi);
+      const x = radius * Math.cos(theta) * Math.sin(phi);
+      const y = radius * Math.sin(theta) * Math.sin(phi);
+      const z = radius * Math.cos(phi);
       return [x, y, z];
     }
     legacygl.begin(mode == 'line' ? gl.LINES : legacygl.QUADS);
     let phi = 0;
-    let dphi = Math.PI / stacks;
+    const dphi = Math.PI / stacks;
     for (let i = 0; i < stacks; ++i, phi += dphi) {
       let theta = 0;
-      let dtheta = (2 * Math.PI) / slices;
+      const dtheta = (2 * Math.PI) / slices;
       for (let j = 0; j < slices; ++j, theta += dtheta) {
-        let p = [
+        const p = [
           angle2pos(theta, phi),
           angle2pos(theta + dtheta, phi),
           angle2pos(theta + dtheta, phi + dphi),
@@ -217,7 +217,7 @@ export function get_drawutil(
         for (let k = 0; k < 4; ++k) {
           legacygl.vertex(p[k][0], p[k][1], p[k][2]);
           if (mode == 'line') {
-            let k1 = (k + 1) % 4;
+            const k1 = (k + 1) % 4;
             legacygl.vertex(p[k1][0], p[k1][1], p[k1][2]);
           }
         }
@@ -231,13 +231,13 @@ export function get_drawutil(
     p2: vec3,
     num_lines = 10
   ) {
-    let p = [p0, p1, p2];
+    const p = [p0, p1, p2];
     legacygl.begin(gl.LINES);
     for (let i = 0; i < num_lines; ++i) {
-      let t = i / num_lines;
+      const t = i / num_lines;
       for (let j = 0; j < 3; ++j) {
-        let a = vec3.lerp([0, 0, 0], p[j], p[(j + 2) % 3], t);
-        let b = vec3.lerp([0, 0, 0], p[(j + 1) % 3], p[(j + 2) % 3], t);
+        const a = vec3.lerp([0, 0, 0], p[j], p[(j + 2) % 3], t);
+        const b = vec3.lerp([0, 0, 0], p[(j + 1) % 3], p[(j + 2) % 3], t);
         legacygl.vertex(a[0], a[1], a[2]);
         legacygl.vertex(b[0], b[1], b[2]);
       }
@@ -253,16 +253,16 @@ export function get_drawutil(
   ) {
     legacygl.begin(gl.LINES);
     for (let i = 0; i <= num_lines; ++i) {
-      let t = i / num_lines;
+      const t = i / num_lines;
       {
-        let a = vec3.lerp([0, 0, 0], p0, p1, t);
-        let b = vec3.lerp([0, 0, 0], p3, p2, t);
+        const a = vec3.lerp([0, 0, 0], p0, p1, t);
+        const b = vec3.lerp([0, 0, 0], p3, p2, t);
         legacygl.vertex(a[0], a[1], a[2]);
         legacygl.vertex(b[0], b[1], b[2]);
       }
       {
-        let a = vec3.lerp([0, 0, 0], p0, p3, t);
-        let b = vec3.lerp([0, 0, 0], p1, p2, t);
+        const a = vec3.lerp([0, 0, 0], p0, p3, t);
+        const b = vec3.lerp([0, 0, 0], p1, p2, t);
         legacygl.vertex(a[0], a[1], a[2]);
         legacygl.vertex(b[0], b[1], b[2]);
       }

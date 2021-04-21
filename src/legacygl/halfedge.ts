@@ -13,9 +13,9 @@ export class Vertex {
   }
 
   outgoing_halfedges() {
-    let result = [];
+    const result = [];
     let h = this.halfedge;
-    while (true) {
+    for (;;) {
       result.push(h);
       h = h.opposite.next;
       if (h == this.halfedge) break;
@@ -36,7 +36,7 @@ export class Vertex {
   }
 
   faces() {
-    let result: Face[] = [];
+    const result: Face[] = [];
     this.outgoing_halfedges().forEach(function (h) {
       if (h.face) result.push(h.face);
     });
@@ -64,9 +64,9 @@ export class Face {
   normal: vec3;
 
   halfedges() {
-    let result = [];
+    const result = [];
     let h = this.halfedge;
-    while (true) {
+    for (;;) {
       result.push(h);
       h = h.next;
       if (h == this.halfedge) break;
@@ -99,7 +99,7 @@ export class Face {
   }
 
   centroid() {
-    let result: vec3 = [0, 0, 0];
+    const result: vec3 = [0, 0, 0];
     let cnt = 0;
     this.vertices().forEach(function (v) {
       vec3.add_ip(result, v.point);
@@ -189,28 +189,28 @@ export class Mesh {
     }
     // check for existence of nonmanifold edges
     for (let k = 0; k < fv_indices.length; ++k) {
-      let i = fv_indices[k];
-      let j = fv_indices[(k + 1) % fv_indices.length];
-      let h_key = i + ':' + j;
-      let h = this.halfedges[h_key];
+      const i = fv_indices[k];
+      const j = fv_indices[(k + 1) % fv_indices.length];
+      const h_key = i + ':' + j;
+      const h = this.halfedges[h_key];
       if (h && h.face) {
         console.log('Nonmanifold edge found at (' + [i, j] + ')');
         return;
       }
     }
-    let face = new Face();
+    const face = new Face();
     for (let k = 0; k < fv_indices.length; ++k) {
-      let i = fv_indices[k];
-      let j = fv_indices[(k + 1) % fv_indices.length];
+      const i = fv_indices[k];
+      const j = fv_indices[(k + 1) % fv_indices.length];
       // two vertices
       let vi = this.vertices[i];
       let vj = this.vertices[j];
       if (!vi) vi = this.vertices[i] = new Vertex();
       if (!vj) vj = this.vertices[j] = new Vertex();
       // edge and two halfedges
-      let hij_key = i + ':' + j;
-      let hji_key = j + ':' + i;
-      let eij_key = Math.min(i, j) + ':' + Math.max(i, j);
+      const hij_key = i + ':' + j;
+      const hji_key = j + ':' + i;
+      const eij_key = Math.min(i, j) + ':' + Math.max(i, j);
       let eij = this.edges[eij_key];
       let hij, hji;
       if (!eij) {
@@ -237,20 +237,20 @@ export class Mesh {
     }
     // set prev/next for halfedges, link from vertex to halfedge
     for (let k = 0; k < fv_indices.length; ++k) {
-      let i0 = fv_indices[k];
-      let i1 = fv_indices[(k + 1) % fv_indices.length];
-      let i2 = fv_indices[(k + 2) % fv_indices.length];
-      let h01 = this.halfedges[i0 + ':' + i1];
-      let h12 = this.halfedges[i1 + ':' + i2];
+      const i0 = fv_indices[k];
+      const i1 = fv_indices[(k + 1) % fv_indices.length];
+      const i2 = fv_indices[(k + 2) % fv_indices.length];
+      const h01 = this.halfedges[i0 + ':' + i1];
+      const h12 = this.halfedges[i1 + ':' + i2];
       h01.next = h12;
       h12.prev = h01;
     }
     // set normal & texcoord for from_vertex of each halfedge
     for (let k = 0; k < fv_indices.length; ++k) {
-      let i = fv_indices[k];
-      let j = fv_indices[(k + 1) % fv_indices.length];
-      let h_key = i + ':' + j;
-      let h = this.halfedges[h_key];
+      const i = fv_indices[k];
+      const j = fv_indices[(k + 1) % fv_indices.length];
+      const h_key = i + ':' + j;
+      const h = this.halfedges[h_key];
       if (!h) {
         console.log('Something weird is happening!');
         return;
@@ -323,12 +323,12 @@ export class Mesh {
     this.faces.forEach(function (f) {
       f.normal = [0, 0, 0];
       f.halfedges().forEach(function (h) {
-        let p0 = h.from_vertex().point;
-        let p1 = h.vertex.point;
-        let p2 = h.next.vertex.point;
-        let d1 = vec3.sub(vec3.create(), p1, p0);
-        let d2 = vec3.sub(vec3.create(), p2, p0);
-        let n = vec3.cross(vec3.create(), d1, d2);
+        const p0 = h.from_vertex().point;
+        const p1 = h.vertex.point;
+        const p2 = h.next.vertex.point;
+        const d1 = vec3.sub(vec3.create(), p1, p0);
+        const d2 = vec3.sub(vec3.create(), p2, p0);
+        const n = vec3.cross(vec3.create(), d1, d2);
         vec3.add_ip(f.normal, n);
       });
       vec3.normalize_ip(f.normal);
