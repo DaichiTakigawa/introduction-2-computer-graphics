@@ -1,9 +1,64 @@
 import {vec3} from 'gl-matrix';
 import {Shader} from './shader';
-import {UniformType, Uniform, ArrayUniform} from './uniform';
+import {
+  UniformType,
+  Uniform,
+  ArrayUniform,
+  ScalarUniform,
+  Vec2Uniform,
+  Vec3Uniform,
+  Vec4Uniform,
+  Mat2Uniform,
+  Mat3Uniform,
+  Mat4Uniform,
+  ScalarArrayUniform,
+  Vec2ArrayUniform,
+  Vec3ArrayUniform,
+  Vec4ArrayUniform,
+  Mat2ArrayUniform,
+  Mat3ArrayUniform,
+  Mat4ArrayUniform,
+} from './uniform';
 import {VertexAttribute} from './vertex-attribute';
 
 type Mode = 'QUADS' | number;
+
+export interface DrawCall {
+  buffers: WebGLBuffer[];
+  mode: number;
+  num_vertices: number;
+}
+
+export interface DispList {
+  name: string;
+  drawcalls: DrawCall[];
+}
+
+export class DispListWrapper {
+  private legacygl: LegacyGL;
+  private name: string;
+  is_valid: boolean;
+  constructor(legacygl: LegacyGL, name: string) {
+    this.legacygl = legacygl;
+    this.name = name;
+    this.is_valid = false;
+  }
+
+  draw(drawfunc: () => void) {
+    if (!this.is_valid) {
+      this.legacygl.newList(this.name);
+      drawfunc();
+      this.legacygl.endList();
+      this.is_valid = true;
+    } else {
+      this.legacygl.callList(this.name);
+    }
+  }
+
+  invalidate() {
+    this.is_valid = false;
+  }
+}
 
 export class LegacyGL {
   private gl: WebGLRenderingContext;
@@ -16,14 +71,7 @@ export class LegacyGL {
   vertex_attributes: VertexAttribute[];
   QUADS: 'QUADS';
   displists: {
-    [key: string]: {
-      name: string;
-      drawcalls: {
-        buffers: WebGLBuffer[];
-        mode: number;
-        num_vertices: number;
-      }[];
-    };
+    [key: string]: DispList;
   };
   current_displist_name: string;
   AUTO_NORMAL: string;
@@ -89,7 +137,22 @@ export class LegacyGL {
       this.shader.program,
       'u_' + name
     );
-    const uniform = new Uniform(location, type);
+    let uniform: Uniform;
+    if (type == '1f' || type == '1i') {
+      uniform = new ScalarUniform(location, type);
+    } else if (type == '2f' || type == '2i') {
+      uniform = new Vec2Uniform(location, type);
+    } else if (type == '3f' || type == '3i') {
+      uniform = new Vec3Uniform(location, type);
+    } else if (type == '4f' || type == '4i') {
+      uniform = new Vec4Uniform(location, type);
+    } else if (type == 'Matrix2f') {
+      uniform = new Mat2Uniform(location);
+    } else if (type == 'Matrix3f') {
+      uniform = new Mat3Uniform(location);
+    } else if (type == 'Matrix4f') {
+      uniform = new Mat4Uniform(location);
+    }
     this.uniforms[name] = uniform;
   }
 
@@ -98,7 +161,22 @@ export class LegacyGL {
       this.shader.program,
       'u_' + name
     );
-    const uniform = new ArrayUniform(location, type, size);
+    let uniform: ArrayUniform;
+    if (type == '1f' || type == '1i') {
+      uniform = new ScalarArrayUniform(location, type, size);
+    } else if (type == '2f' || type == '2i') {
+      uniform = new Vec2ArrayUniform(location, type, size);
+    } else if (type == '3f' || type == '3i') {
+      uniform = new Vec3ArrayUniform(location, type, size);
+    } else if (type == '4f' || type == '4i') {
+      uniform = new Vec4ArrayUniform(location, type, size);
+    } else if (type == 'Matrix2f') {
+      uniform = new Mat2ArrayUniform(location, size);
+    } else if (type == 'Matrix3f') {
+      uniform = new Mat3ArrayUniform(location, size);
+    } else if (type == 'Matrix4f') {
+      uniform = new Mat4ArrayUniform(location, size);
+    }
     this.uniforms[name] = uniform;
   }
 
@@ -267,24 +345,7 @@ export class LegacyGL {
   }
 
   displist_wrapper(name: string) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const legacygl = this;
-    const wrapper = {
-      is_valid: false,
-      draw(drawfunc: () => void) {
-        if (!this.is_valid) {
-          legacygl.newList(name);
-          drawfunc();
-          legacygl.endList();
-          this.is_valid = true;
-        } else {
-          legacygl.callList(name);
-        }
-      },
-      invalidate() {
-        this.is_valid = false;
-      },
-    };
+    const wrapper = new DispListWrapper(this, name);
     return wrapper;
   }
 
@@ -297,12 +358,10 @@ export class LegacyGL {
   }
 }
 
-/* eslint-disable no-unused-vars */
 export interface LegacyGL {
   vertex?(x: number, y: number, z: number): void;
   color?(r: number, g: number, b: number): void;
 }
-/* eslint-enable no-unused-vars */
 
 export function get_legacygl(
   gl: WebGLRenderingContext,

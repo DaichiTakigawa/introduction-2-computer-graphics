@@ -5,20 +5,18 @@ import {
   get_drawutil,
   get_legacygl,
   Camera,
-  Drawutil,
+  DrawUtil,
   LegacyGL,
 } from '../legacygl';
 
-declare module '../legacygl' {
-  interface LegacyGL {
-    vertex2(p: vec2): void;
-  }
+interface MyLegacyGL extends LegacyGL {
+  vertex2?(p: vec2): void;
 }
 
 let gl: WebGLRenderingContext;
 let canvas: HTMLCanvasElement;
-let legacygl: LegacyGL;
-let drawutil: Drawutil;
+let legacygl: MyLegacyGL;
+let drawutil: DrawUtil;
 let camera: Camera;
 let p0: vec2, p1: vec2, p2: vec2;
 let selected: vec2 = null;

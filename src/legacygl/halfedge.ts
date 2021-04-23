@@ -266,13 +266,13 @@ export class Mesh {
   }
 
   halfedges_forEach(func: (halfedge: HalfEdge, index: number) => void) {
-    Object.keys(this.halfedges).forEach(function (key, index) {
+    Object.keys(this.halfedges).forEach((key, index) => {
       func(this.halfedges[key], index);
     });
   }
 
   edges_forEach(func: (edge: Edge, index: number) => void) {
-    Object.keys(this.edges).forEach(function (key, index) {
+    Object.keys(this.edges).forEach((key, index) => {
       func(this.edges[key], index);
     });
   }

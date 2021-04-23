@@ -1,7 +1,7 @@
 import {vec3} from 'gl-matrix';
 import {LegacyGL} from './legacygl';
 
-export interface Drawutil {
+export interface DrawUtil {
   xyzaxis(): void;
   xygrid(size: number): void;
   yzgrid(size: number): void;
@@ -24,7 +24,7 @@ export interface Drawutil {
 export function get_drawutil(
   gl: WebGLRenderingContext,
   legacygl: LegacyGL
-): Drawutil {
+): DrawUtil {
   const drawutil: any = {};
   drawutil.xyzaxis = function () {
     legacygl.begin(gl.LINES);

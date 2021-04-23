@@ -5,6 +5,8 @@ export * from './camera';
 export * from './drawutil';
 export * from './halfedge';
 export * from './util';
-export * as meshio from './meshio';
-export * as glu from './glu';
-export * as colormap from './colormap';
+import * as meshio from './meshio';
+import * as glu from './glu';
+import * as colormap from './colormap';
+
+export {meshio, glu, colormap};
