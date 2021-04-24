@@ -20,7 +20,7 @@
     "webpack-cli": "^4.6.0"
   },
   "scripts": {
-    "copy-files": "copyfiles -u 1 src/index.html src/**/index.html src/**/index.css dist/",
+    "copy-files": "copyfiles -u 1 src/index.html src/**/index.html src/**/index.css static/**/* dist/",
     "build": "webpack && yarn copy-files"
   },
   "dependencies": {

@@ -50,3 +50,65 @@ GLSLにはgl_で始まる様々なビルトイン変数が存在する。
     ```
 - IBO(index buffer object)  
 インデックスバッファーでは、頂点をどのような順番で結ぶかを指定できる。
+
+## メッシュのデータ構造
+
+- off形式
+
+  ```off
+  OFF
+  # cube.off
+  # A cube
+  
+  8 6 12              <- 頂点数 面数 辺数
+  1.0  0.0 1.4142     <- 0番目の頂点のxyz座標
+  0.0  1.0 1.4142
+  -1.0  0.0 1.4142
+  0.0 -1.0 1.4142
+  1.0  0.0 0.0
+  0.0  1.0 0.0
+  -1.0  0.0 0.0
+  0.0 -1.0 0.0        <- 7番目の頂点のxyz座標
+  4  0 1 2 3  255 0 0 #red <- 0番目の面の頂点数と頂点インデックスリス、optionalで面の色。
+  4  7 4 0 3  0 255 0 #green
+  4  4 5 1 0  0 0 255 #blue
+  4  5 6 2 1  0 255 0 
+  4  3 2 6 7  0 0 255
+  4  6 5 4 7  255 0 0
+  ```
+
+- obj形式
+
+  ```obj
+  # List of geometric vertices, with (x, y, z [,w]) coordinates, w is optional and defaults to 1.0.
+  v 0.123 0.234 0.345 1.0
+  v ...
+  ...
+  # List of texture coordinates, in (u, [,v ,w]) coordinates, these will vary between 0 and 1. v, w are optional and default to 0.
+  vt 0.500 1 [0]
+  vt ...
+  ...
+  # List of vertex normals in (x,y,z) form; normals might not be unit vectors.
+  vn 0.707 0.000 0.707
+  vn ...
+  ...
+  # Parameter space vertices in ( u [,v] [,w] ) form; free form geometry statement ( see below )
+  vp 0.310000 3.210000 2.100000
+  vp ...
+  ...
+  # Polygonal face element (see below)
+  f 1 2 3
+  f 3/1 4/2 5/3
+  f 6/4/1 3/5/3 7/6/5
+  f 7//1 8//2 9//3
+  f ...
+  ...
+  # Line element (see below)
+  l 5 8 1 2 4 9
+  ```
+
+## ハーフエッジデータ構造
+
+- 辺中心のデータ構造で頂点、辺、面のインシデンス情報を維持できる。
+
+  ![halfedge](https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Dcel-halfedge-connectivity.svg/1280px-Dcel-halfedge-connectivity.svg.png)
