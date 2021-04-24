@@ -334,7 +334,7 @@ export class Mesh {
       vec3.normalize_ip(f.normal);
     });
     // per-vertex
-    this.vertices.forEach(function (v, index) {
+    this.vertices.forEach(function (v) {
       v.normal = [0, 0, 0];
       if (v.faces === undefined) return;
       v.faces().forEach(function (f) {

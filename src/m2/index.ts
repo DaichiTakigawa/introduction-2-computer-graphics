@@ -53,6 +53,7 @@ function draw() {
   const check_show_edges = document.getElementById(
     'check_show_edges'
   ) as HTMLInputElement;
+
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   if (!mesh_control) return;
 
