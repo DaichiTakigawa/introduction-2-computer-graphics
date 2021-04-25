@@ -111,8 +111,6 @@ GLSLにはgl_で始まる様々なビルトイン変数が存在する。
 
 - 辺中心のデータ構造で頂点、辺、面のインシデンス情報を維持できる。
 
-  ![halfedge](https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Dcel-halfedge-connectivity.svg/1280px-Dcel-halfedge-connectivity.svg.png)
-
 - 頂点は、自分自身から出ていくハーフエッジを1つ保持する。
 - エッジは、自分自身に重なるハーフエッジの2つの内1つを保持する。
 - 面は、自身に接するハーフエッジを1つ保持する。
