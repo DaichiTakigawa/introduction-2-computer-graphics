@@ -21,7 +21,7 @@ import {
 } from './uniform';
 import {VertexAttribute} from './vertex-attribute';
 
-type Mode = 'QUADS' | number;
+export type Mode = 'QUADS' | number;
 
 export interface DrawCall {
   buffers: WebGLBuffer[];

@@ -16,8 +16,10 @@ import {
   Mat4Uniform,
   ScalarUniform,
   DispListWrapper,
-  Edge,
   Vertex,
+  Edge,
+  Face,
+  Mode,
 } from '../legacygl';
 
 interface MyLegacyGL extends LegacyGL {
@@ -30,6 +32,10 @@ interface SubDivVertex extends Vertex {
 }
 
 interface SubDivEdge extends Edge {
+  subdiv_point?: vec3;
+}
+
+interface SubDivFace extends Face {
   subdiv_point?: vec3;
 }
 
@@ -46,7 +52,7 @@ let displist_subdiv_edges: DispListWrapper;
 let drawutil: DrawUtil;
 let camera: Camera;
 
-function draw() {
+function draw(mesh_draw_mode: Mode = gl.TRIANGLES) {
   const check_show_control = document.getElementById(
     'check_show_control'
   ) as HTMLInputElement;
@@ -102,10 +108,10 @@ function draw() {
   // subdiv mesh faces
   use_material.push();
   use_material.value = 1;
-  displist_subdiv_faces.draw(function () {
+  displist_subdiv_faces.draw(() => {
     // NOTE: this code assumes all faces are triangles!
     // Quads can be drawn by using gl.QUADS which internally splits each quad into two triangles
-    legacygl.begin(gl.TRIANGLES);
+    legacygl.begin(mesh_draw_mode);
     mesh_subdiv.faces.forEach(function (f) {
       legacygl.normal3(f.normal);
       f.vertices().forEach(function (v) {
@@ -130,83 +136,96 @@ function draw() {
     });
   }
 }
-function subdivide() {
+
+function subdivide_catmull_clark() {
+  // for each face, compute subdivided point
+  mesh_subdiv.faces.forEach(function (f: SubDivFace) {
+    const v = f.vertices();
+    f.subdiv_point = vec3.create();
+    for (let i = 0; i < v.length; ++i) {
+      vec3.add_ip(f.subdiv_point, v[i].point);
+    }
+    vec3.scale_ip(f.subdiv_point, 1 / v.length);
+  });
   // for each edge, compute subdivided point
   mesh_subdiv.edges_forEach(function (e: SubDivEdge) {
     const v = e.vertices();
-    const w = [e.halfedge.next.vertex, e.halfedge.opposite.next.vertex];
-    if (e.is_boundary()) {
-      e.subdiv_point = vec3.scale(
+    const f = e.faces() as SubDivFace[]; // assume that all edge are not boundary
+    e.subdiv_point = vec3.scale(
+      vec3.create(),
+      vec3.add(vec3.create(), f[0].subdiv_point, f[1].subdiv_point),
+      0.5
+    );
+    e.subdiv_point = vec3.add(
+      vec3.create(),
+      e.subdiv_point,
+      vec3.scale(
         vec3.create(),
         vec3.add(vec3.create(), v[0].point, v[1].point),
         0.5
-      );
-    } else {
-      e.subdiv_point = vec3.add(
-        vec3.create(),
-        vec3.scale(
-          vec3.create(),
-          vec3.add(vec3.create(), v[0].point, v[1].point),
-          3 / 8
-        ),
-        vec3.scale(
-          vec3.create(),
-          vec3.add(vec3.create(), w[0].point, w[1].point),
-          1 / 8
-        )
-      );
-    }
+      )
+    );
+    vec3.scale_ip(e.subdiv_point, 0.5);
   });
   // for each vertex, compute displaced point
   mesh_subdiv.vertices.forEach(function (v: SubDivVertex) {
-    if (v.is_boundary()) {
-      const w0 = v.halfedge.prev.from_vertex();
-      const w1 = v.halfedge.vertex;
-      v.subdiv_point = vec3.add(
-        vec3.create(),
-        vec3.scale(vec3.create(), v.point, 3 / 4),
+    const f = v.faces() as SubDivFace[];
+    const e = v.edges() as SubDivEdge[];
+    let q = vec3.create();
+    for (let i = 0; i < f.length; ++i) {
+      q = vec3.add(vec3.create(), q, f[i].subdiv_point);
+    }
+    q = vec3.scale(vec3.create(), q, 1 / f.length);
+    let r = vec3.create();
+    for (let i = 0; i < e.length; ++i) {
+      const ev = e[i].vertices();
+      vec3.add_ip(
+        r,
         vec3.scale(
           vec3.create(),
-          vec3.add(vec3.create(), w0.point, w1.point),
-          1 / 8
+          vec3.add(vec3.create(), ev[0].point, ev[1].point),
+          0.5
         )
       );
-    } else {
-      const w = v.vertices();
-      const alpha =
-        Math.pow(3 / 8 + (1 / 4) * Math.cos((2 * Math.PI) / w.length), 2) +
-        3 / 8;
-      v.subdiv_point = vec3.scale(vec3.create(), v.point, alpha);
-      for (let i = 0; i < w.length; ++i)
-        v.subdiv_point = vec3.add(
-          vec3.create(),
-          v.subdiv_point,
-          vec3.scale(vec3.create(), w[i].point, (1 - alpha) / w.length)
-        );
     }
+    r = vec3.scale(vec3.create(), r, 1 / e.length);
+    const n = e.length;
+    v.subdiv_point = vec3.scale(vec3.create(), q, 1 / n);
+    v.subdiv_point = vec3.add(
+      vec3.create(),
+      v.subdiv_point,
+      vec3.scale(vec3.create(), r, 2 / n)
+    );
+    v.subdiv_point = vec3.add(
+      vec3.create(),
+      v.subdiv_point,
+      vec3.scale(vec3.create(), v.point, (n - 3) / n)
+    );
   });
   // make next subdiv mesh topology
   const mesh_subdiv_next = make_halfedge_mesh();
-  const offset = mesh_subdiv.num_vertices();
-  mesh_subdiv.faces.forEach(function (f) {
-    f.halfedges().forEach(function (h) {
-      const fv_indices = [h.from_vertex().id];
-      fv_indices.push(offset + h.edge.id);
-      fv_indices.push(offset + h.prev.edge.id);
-      mesh_subdiv_next.add_face(fv_indices);
-    });
+  const edge_offset = mesh_subdiv.num_vertices();
+  const face_offset = edge_offset + mesh_subdiv.num_edges();
+  mesh_subdiv.halfedges_forEach(function (h) {
+    const v = h.from_vertex() as SubDivVertex;
+    const ev1 = h.prev.edge as SubDivEdge;
+    const ev2 = h.edge as SubDivEdge;
+    const fv = h.face as SubDivFace;
     const fv_indices: number[] = [];
-    f.edges().forEach(function (e) {
-      fv_indices.push(offset + e.id);
-    });
+    fv_indices.push(ev1.id + edge_offset);
+    fv_indices.push(v.id);
+    fv_indices.push(ev2.id + edge_offset);
+    fv_indices.push(fv.id + face_offset);
     mesh_subdiv_next.add_face(fv_indices);
   });
-  // set geometry for the next subdiv mesh
   mesh_subdiv.vertices.forEach(function (v: SubDivVertex) {
     mesh_subdiv_next.vertices[v.id].point = v.subdiv_point;
   });
   mesh_subdiv.edges_forEach(function (e: SubDivEdge) {
-    mesh_subdiv_next.vertices[offset + e.id].point = e.subdiv_point;
+    mesh_subdiv_next.vertices[e.id + edge_offset].point = e.subdiv_point;
+  });
+  mesh_subdiv.faces.forEach(function (f: SubDivFace) {
+    mesh_subdiv_next.vertices[f.id + face_offset].point = f.subdiv_point;
   });
   mesh_subdiv = mesh_subdiv_next;
   mesh_subdiv.init_ids();
@@ -214,7 +233,7 @@ function subdivide() {
   mesh_subdiv.compute_normals();
   displist_subdiv_faces.invalidate();
   displist_subdiv_edges.invalidate();
-  draw();
+  draw('QUADS');
   document.getElementById('label_mesh_nv').innerHTML = String(
     mesh_subdiv.num_vertices()
   );
@@ -225,6 +244,7 @@ function subdivide() {
     mesh_subdiv.num_edges()
   );
 }
+
 function write_mesh() {
   const filename = 'mesh_subdiv.obj';
   const content = meshio.write(mesh_subdiv, filename);
@@ -234,6 +254,7 @@ function write_mesh() {
   a.download = filename;
   a.click();
 }
+
 function init() {
   // OpenGL context
   canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -433,5 +454,5 @@ declare global {
 
 window.draw = draw;
 window.init = init;
-window.subdivide = subdivide;
+window.subdivide = subdivide_catmull_clark;
 window.write_mesh = write_mesh;
