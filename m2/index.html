@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title id="title">[utokyo-iscg-2021] M2: サブディビジョンサーフェス Catmull-Clark法</title>
+  <script src="./index.js"></script>
+</head>
+
+<body onload="init(); draw();">
+  <h2><a href="https://www.takigawa-memo.com/introduction-2-computer-graphics/">← HOME</a></h2>
+  <h2><a target="_blank"
+      href="https://github.com/DaichiTakigawa/introduction-2-computer-graphics/blob/develop/src/m2/index.ts">ソースコード</a>
+  </h2>
+  <h2><a target="_blank" href="http://research.nii.ac.jp/~takayama/teaching/utokyo-iscg-2021/">
+      <script type="text/javascript">document.write(document.getElementById("title").innerHTML);</script>
+    </a></h2>
+  <table>
+    <tr>
+      <td>
+        <canvas id="canvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
+      </td>
+      <td>
+        <ul>
+          <li>Read Control Mesh from Disk: <input type="file" id="text_mesh_disk" accept=".off,.obj"></li>
+          <li>Subdivided Mesh Statistics:</li>
+          <ul>
+            <li><span id="label_mesh_nv">0</span> Vertices</li>
+            <li><span id="label_mesh_nf">0</span> Faces</li>
+            <li><span id="label_mesh_ne">0</span> Edges</li>
+          </ul>
+          <li><button onclick="subdivide(); draw()">Subdivide</button></li>
+          <li><button onclick="write_mesh()">Write Mesh</button></li>
+          <li>Material: <img id="img_material"></li>
+          <ul>
+            <li>Read from Disk: <input type="file" id="text_material_disk" accept=".png,.jpg,.gif"></li>
+          </ul>
+          <li>Draw Options</li>
+          <ul>
+            <li><input type="checkbox" id="check_show_edges" checked onchange="draw()">Show Edges</li>
+            <li><input type="checkbox" id="check_show_control" checked onchange="draw()">Show Control Mesh</li>
+          </ul>
+          <li>Camera Control</li>
+          <ul>
+            <li>Drag: Rotate</li>
+            <li>Shift+Drag: Zoom</li>
+            <li>Ctrl+Drag: Pan</li>
+          </ul>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
