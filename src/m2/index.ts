@@ -399,7 +399,7 @@ function init() {
     xhr.send();
   }
   read_default_mesh(
-    'https://cdn.glitch.com/e530aeed-ec07-4e9a-b2b2-e5dd9fc39322%2Floop-test.obj?1556153350921'
+    'https://www.takigawa-memo.com/introduction-2-computer-graphics/m2/cube.obj'
   );
   // texture
   function read_texture(dataurl: string) {
@@ -439,7 +439,7 @@ function init() {
     xhr.send();
   }
   read_default_texture(
-    'https://cdn.glitch.com/13696316-44e5-40d1-b312-830e260e4817%2Fmetal1.png?1555562471905'
+    'https://www.takigawa-memo.com/introduction-2-computer-graphics/m2/blue-to-purple.jpg'
   );
 }
 
