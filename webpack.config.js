@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     'm1/index.js': './src/m1/index.ts',
     'm2/index.js': './src/m2/index.ts',
+    'a1/index.js': './src/a1/index.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
