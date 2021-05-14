@@ -49,7 +49,37 @@ function update_position() {
 }
 
 function compute_ik(target_position: vec3) {
-  // TODO
+  const target_vec: vec2 = [target_position[0], target_position[1]];
+  let prev_pos = linkages[linkages.length - 1].position;
+  for (let i = 0; i < 100; ++i) {
+    // update
+    linkages.forEach((linkage, index) => {
+      const start_pos =
+        index == 0 ? vec2.create() : linkages[index - 1].position;
+      const now_vec = vec2.sub(
+        vec2.create(),
+        linkages[linkages.length - 1].position,
+        start_pos
+      );
+      const nxt_vec = vec2.sub(vec2.create(), target_vec, start_pos);
+      vec2.normalize_ip(now_vec);
+      vec2.normalize_ip(nxt_vec);
+      const s = vec2.cross(vec3.create(), now_vec, nxt_vec)[2];
+      let c = vec2.dot(now_vec, nxt_vec);
+      c = Math.max(Math.min(c, 1), -1);
+      const add_angle =
+        s >= 0
+          ? (Math.acos(c) / Math.PI) * 180
+          : (-Math.acos(c) / Math.PI) * 180;
+      linkage.angle += add_angle;
+      update_position();
+    });
+
+    const now_pos = linkages[linkages.length - 1].position;
+    const dist = vec2.distance(prev_pos, now_pos);
+    if (dist < 0.02) break;
+    prev_pos = now_pos;
+  }
 }
 
 function draw() {
@@ -134,8 +164,8 @@ function init() {
   };
   drawutil = get_drawutil(gl, legacygl);
   camera = get_camera(canvas.width);
-  camera.center = [2, 0, 0];
-  camera.eye = [2, 0, 7];
+  camera.center = [0, 0, 0];
+  camera.eye = [0, 0, 16];
   update_position();
   // event handlers
   canvas.onmousedown = function (evt) {

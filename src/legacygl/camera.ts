@@ -5,7 +5,13 @@ type CameraMode = 'none' | 'rotate' | 'pan' | 'zoom';
 export class Camera {
   private viewport_width: number;
 
+  /**
+   * Position of the viewer
+   */
   eye: vec3;
+  /**
+   * Point the viewer is looking at
+   */
   center: vec3;
   up: vec3;
   mode: CameraMode;
