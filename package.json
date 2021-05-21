@@ -24,6 +24,7 @@
     "build": "webpack && yarn copy-files"
   },
   "dependencies": {
-    "gl-matrix": "^3.3.0"
+    "gl-matrix": "^3.3.0",
+    "svd-js": "^1.1.1"
   }
 }
