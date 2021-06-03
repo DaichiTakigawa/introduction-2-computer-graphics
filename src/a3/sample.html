@@ -1,0 +1,362 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title id="title">[utokyo-iscg-2021] Advanced Assignment A3 (Fluid)</title>
+  <script src="https://rawcdn.githack.com/toji/gl-matrix/v3.3.0/dist/gl-matrix-min.js"></script>
+  <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/gl-matrix-util.js"></script>
+  <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/legacygl.js"></script>
+  <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/util.js"></script>
+  <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/glu.js"></script>
+  <script type="text/javascript">
+    var gl;
+    var canvas;
+    var legacygl;
+    var param = {
+      N: 64,                 // grid size
+      dt: 0.1,               // time step
+      soliter: 20,           // solution iteration
+      diff: 0,               // diffusion coef
+      visc: 0,               // viscosity coef
+      user_vel: 5,           // scaling factor for user's velocity/density manipulation
+      user_dens: 100,
+    };
+    function Swappable() {
+      this.old = undefined;
+      this.New = undefined;
+      this.swap = function () {
+        var tmp = this.New;
+        this.New = this.old;
+        this.old = tmp;
+      };
+      this.allocate = function () {
+        var size = (param.N + 2) * (param.N + 2);
+        this.New = new Float32Array(size);
+        this.old = new Float32Array(size);
+      };
+    };
+    var data = {
+      u: new Swappable(),
+      v: new Swappable(),
+      dens: new Swappable(),
+      div: undefined,
+      p: undefined,
+      u_source: undefined,
+      v_source: undefined,
+      dens_source: undefined,
+      allocate: function () {
+        this.u.allocate();
+        this.v.allocate();
+        this.dens.allocate();
+        var size = (param.N + 2) * (param.N + 2);
+        this.div = new Float32Array(size);
+        this.p = new Float32Array(size);
+        this.u_source = new Float32Array(size);
+        this.v_source = new Float32Array(size);
+        this.dens_source = new Float32Array(size);
+      },
+    };
+    var mouse = {
+      x: 0,
+      y: 0,
+      x_prev: 0,
+      y_prev: 0,
+      pressed: false,
+      shiftKey: false
+    };
+    // refer to Fig 2 in Stam's GDC03 paper for the grid setup
+    // https://05f43270-a325-4aeb-a1d8-39e42f0e9fcc.filesusr.com/ugd/cf1fd6_4c69a528c35e4a38a326f98d68fd9a1a.pdf
+    function IX(i, j) {
+      return i + (param.N + 2) * j;
+    };
+    function add_source(x, s) {
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        x[IX(i, j)] += param.dt * s[IX(i, j)];
+      }
+    };
+    function set_bnd(b, x) {
+      for (var i = 1; i <= param.N; i++) {
+        if (document.getElementsByName("input_radio_boundary")[1].checked) {
+          // periodic
+          x[IX(0, i)] = x[IX(param.N, i)];
+          x[IX(param.N + 1, i)] = x[IX(1, i)];
+          x[IX(i, 0)] = x[IX(i, param.N)];
+          x[IX(i, param.N + 1)] = x[IX(i, 1)];
+        } else {
+          // solid wall
+          x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
+          x[IX(param.N + 1, i)] = b == 1 ? -x[IX(param.N, i)] : x[IX(param.N, i)];
+          x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+          x[IX(i, param.N + 1)] = b == 2 ? -x[IX(i, param.N)] : x[IX(i, param.N)];
+        }
+      }
+      if (b != 0 && document.getElementsByName("input_radio_boundary")[2].checked)
+        x[IX(Math.floor(param.N / 2), 0)] = b == 1 ? 0 : (20 / param.N);
+      x[IX(0, 0)] = 0.5 * (x[IX(1, 0)] + x[IX(0, 1)]);
+      x[IX(0, param.N + 1)] = 0.5 * (x[IX(1, param.N + 1)] + x[IX(0, param.N)]);
+      x[IX(param.N + 1, 0)] = 0.5 * (x[IX(param.N, 0)] + x[IX(param.N + 1, 1)]);
+      x[IX(param.N + 1, param.N + 1)] = 0.5 * (x[IX(param.N, param.N + 1)] + x[IX(param.N + 1, param.N)]);
+    };
+    function diffuse(b, X, diff) {
+      // solve diffusion equation by Gauss-Seidel
+      var a = param.dt * diff * param.N * param.N;
+      for (var k = 0; k < param.soliter; ++k) {
+        for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+          X.New[IX(i, j)] = (X.old[IX(i, j)] + a * (X.New[IX(i - 1, j)] + X.New[IX(i + 1, j)] + X.New[IX(i, j - 1)] + X.New[IX(i, j + 1)])) / (1 + 4 * a);
+        }
+        set_bnd(b, X.New);
+      }
+    };
+    function advect(b, X, u, v) {
+      var dt0 = param.dt * param.N;
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        var px = i - dt0 * u[IX(i, j)];
+        var py = j - dt0 * v[IX(i, j)];
+        if (px < 0.5) px = 0.5; if (px > param.N + 0.5) px = param.N + 0.5;
+        if (py < 0.5) py = 0.5; if (py > param.N + 0.5) py = param.N + 0.5;
+        var i0 = Math.floor(px); i1 = i0 + 1;
+        var j0 = Math.floor(py); j1 = j0 + 1;
+        var s1 = px - i0;
+        var s0 = 1 - s1;
+        var t1 = py - j0;
+        var t0 = 1 - t1;
+        X.New[IX(i, j)] = s0 * (t0 * X.old[IX(i0, j0)] + t1 * X.old[IX(i0, j1)]) +
+          s1 * (t0 * X.old[IX(i1, j0)] + t1 * X.old[IX(i1, j1)]);
+      }
+      set_bnd(b, X.New);
+    };
+    function project() {
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        data.div[IX(i, j)] = (data.u.New[IX(i + 1, j)] - data.u.New[IX(i - 1, j)] + data.v.New[IX(i, j + 1)] - data.v.New[IX(i, j - 1)]) / (2 * param.N);
+        data.p[IX(i, j)] = 0;
+      }
+      set_bnd(0, data.div);
+      // solve Poisson equation by Gauss-Seidel
+      for (var k = 0; k < param.soliter; ++k) {
+        for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+          data.p[IX(i, j)] = (-data.div[IX(i, j)] + data.p[IX(i - 1, j)] + data.p[IX(i + 1, j)] + data.p[IX(i, j - 1)] + data.p[IX(i, j + 1)]) / 4;
+        }
+        set_bnd(0, data.p);
+      }
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        data.u.New[IX(i, j)] -= 0.5 * param.N * (data.p[IX(i + 1, j)] - data.p[IX(i - 1, j)]);
+        data.v.New[IX(i, j)] -= 0.5 * param.N * (data.p[IX(i, j + 1)] - data.p[IX(i, j - 1)]);
+      }
+      set_bnd(1, data.u.New);
+      set_bnd(2, data.v.New);
+    };
+    function dens_step() {
+      add_source(data.dens.New, data.dens_source);
+      data.dens.swap();
+      diffuse(0, data.dens, param.diff);
+      data.dens.swap();
+      advect(0, data.dens, data.u.New, data.v.New);
+    };
+    function vel_step() {
+      add_source(data.u.New, data.u_source);
+      add_source(data.v.New, data.v_source);
+      data.u.swap();
+      data.v.swap();
+      diffuse(1, data.u, param.visc);
+      diffuse(2, data.v, param.visc);
+      if (document.getElementById("input_chk_do_projection").checked)
+        project();
+      data.u.swap();
+      data.v.swap();
+      advect(1, data.u, data.u.old, data.v.old);
+      advect(2, data.v, data.u.old, data.v.old);
+      if (document.getElementById("input_chk_do_projection").checked)
+        project();
+    };
+    function get_from_UI() {
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        data.u_source[IX(i, j)] = 0;
+        data.v_source[IX(i, j)] = 0;
+        data.dens_source[IX(i, j)] = 0;
+      }
+      if (!mouse.pressed) return;
+      var i = Math.floor(mouse.x / canvas.width * param.N) + 1;
+      var j = Math.floor(mouse.y / canvas.height * param.N) + 1;
+      if (i < 1 || i > param.N || j < 1 || j > param.N) return;
+      if (mouse.shiftKey) {
+        data.dens_source[IX(i, j)] = param.user_dens;
+      } else {
+        data.u_source[IX(i, j)] = param.user_vel * (mouse.x - mouse.x_prev);
+        data.v_source[IX(i, j)] = param.user_vel * (mouse.y - mouse.y_prev);
+      }
+      mouse.x = mouse.x_prev;
+      mouse.y = mouse.y_prev;
+    };
+    function simulateOneStep() {
+      get_from_UI();
+      if (document.getElementById("input_chk_update_velocity").checked)
+        vel_step();
+      dens_step();
+    };
+    function draw() {
+      var h = 1 / param.N;
+      legacygl.begin(legacygl.QUADS);
+      for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+        var x = (i - 1) * h;
+        var y = (j - 1) * h;
+        var d = data.dens.New[IX(i, j)];
+        legacygl.color(d, d, d);
+        legacygl.vertex2(x, y);
+        legacygl.vertex2(x + h, y);
+        legacygl.vertex2(x + h, y + h);
+        legacygl.vertex2(x, y + h);
+      }
+      legacygl.end();
+      if (document.getElementById("input_chk_show_velocity").checked) {
+        legacygl.begin(gl.LINES);
+        for (var i = 1; i <= param.N; ++i) for (var j = 1; j <= param.N; ++j) {
+          var x = (i - 0.5) * h;
+          var y = (j - 0.5) * h;
+          var u = data.u.New[IX(i, j)];
+          var v = data.v.New[IX(i, j)];
+          legacygl.color(0, 1, 0);
+          legacygl.vertex2(x, y);
+          legacygl.color(0, 0, 1);
+          legacygl.vertex2(x + u, y + v);
+        }
+        legacygl.end();
+      }
+    };
+    function animLoop() {
+      simulateOneStep();
+      draw();
+      if (document.getElementById("input_chk_simulate").checked)
+        window.setTimeout(animLoop, param.dt * 1000);
+    };
+    function init() {
+      // OpenGL context
+      canvas = document.getElementById("canvas");
+      gl = canvas.getContext("experimental-webgl");
+      if (!gl)
+        alert("Could not initialize WebGL!");
+      var vertex_shader_src = "\
+        attribute vec3 a_vertex;\
+        attribute vec3 a_color;\
+        varying vec3 v_color;\
+        uniform mat4 u_projectionMatrix;\
+        void main(void) {\
+            gl_Position = u_projectionMatrix * vec4(a_vertex, 1.0);\
+            v_color = a_color;\
+            gl_PointSize = 5.0;\
+        }\
+        ";
+      var fragment_shader_src = "\
+        precision mediump float;\
+        varying vec3 v_color;\
+        void main(void) {\
+            gl_FragColor = vec4(v_color, 1.0);\
+        }\
+        ";
+      legacygl = get_legacygl(gl, vertex_shader_src, fragment_shader_src);
+      legacygl.add_uniform("projectionMatrix", "Matrix4f");
+      legacygl.add_vertex_attribute("color", 3);
+      function vertex2(x, y) {
+        legacygl.vertex(x, y, 0);
+      };
+      legacygl.vertex2 = vertex2;
+      legacygl.color3 = function (c) {
+        this.color(c[0], c[1], c[2]);
+      };
+      // event handlers
+      canvas.onmousedown = function (evt) {
+        var mouse_win = this.get_mousepos(evt);
+        mouse.x = mouse.x_prev = mouse_win[0];
+        mouse.y = mouse.y_prev = mouse_win[1];
+        mouse.pressed = true;
+        mouse.shiftKey = evt.shiftKey;
+      };
+      canvas.onmousemove = function (evt) {
+        var mouse_win = this.get_mousepos(evt);
+        mouse.x = mouse_win[0];
+        mouse.y = mouse_win[1];
+      }
+      document.onmouseup = function (evt) {
+        mouse.pressed = false;
+      };
+      // link param and GUI
+      function register_param(elem_name, param_name, onchange) {
+        var elem = document.getElementById(elem_name);
+        elem.value = param[param_name];
+        elem.onchange = function () {
+          param[param_name] = Number(this.value);
+          if (onchange)
+            onchange();
+        };
+      };
+      register_param("input_num_N", "N", function () { data.allocate(); });
+      register_param("input_num_dt", "dt");
+      register_param("input_num_soliter", "soliter");
+      register_param("input_num_diff", "diff");
+      register_param("input_num_visc", "visc");
+      register_param("input_num_visc", "visc");
+      register_param("input_num_user_vel", "user_vel");
+      register_param("input_num_user_dens", "user_dens");
+      // init OpenGL settings
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      glu.ortho2D(legacygl.uniforms.projectionMatrix.value, 0, 1, 0, 1);
+      // start animation
+      data.allocate();
+      animLoop();
+    };
+  </script>
+</head>
+
+<body onload="init(); draw();">
+  <h2><a target="_blank" href="http://research.nii.ac.jp/~takayama/teaching/utokyo-iscg-2021/">
+      <script type="text/javascript">document.write(document.getElementById("title").innerHTML);</script>
+    </a></h2>
+  <table>
+    <tr>
+      <td>
+        <canvas id="canvas" width="512" height="512" style="border:1px solid #000000;"></canvas>
+      </td>
+      <td>
+        <ul>
+          <li><button onclick="data.allocate(); draw()">Reset</button></li>
+          <li><button onclick="data.u.allocate(); data.v.allocate(); draw()">Reset Velocity</button></li>
+          <li><button onclick="data.dens.allocate(); draw()">Reset Density</button></li>
+          <li><input type="checkbox" id="input_chk_simulate" onchange="animLoop()" checked>Run Simulation</li>
+          <li><input type="checkbox" id="input_chk_update_velocity" checked>Update Velocity</li>
+          <li><input type="checkbox" id="input_chk_do_projection" checked>Do Projection</li>
+          <li>Simulation Parameters:</li>
+          <ul>
+            <li>Grid Size: <input type="number" id="input_num_N" step="1" min="4"></li>
+            <li>Time Step: <input type="number" id="input_num_dt" step="0.001" min="0.00001"></li>
+            <li>Solver Iterations: <input type="number" id="input_num_soliter" min="1" step="1"></li>
+            <li>Diffusion: <input type="number" id="input_num_diff" step="0.0001" min="0"></li>
+            <li>Viscosity: <input type="number" id="input_num_visc" step="0.01" min="0" max="1"></li>
+          </ul>
+          <li>User Input Scaling:</li>
+          <ul>
+            <li>Velocity: <input type="number" id="input_num_user_vel" step="1" min="4"></li>
+            <li>Density: <input type="number" id="input_num_user_dens" step="1" min="4"></li>
+          </ul>
+          <li>Boundary Condition:</li>
+          <ul>
+            <li><input type="radio" name="input_radio_boundary" checked> Solid Walls</li>
+            <li><input type="radio" name="input_radio_boundary"> Periodic</li>
+            <li><input type="radio" name="input_radio_boundary"> Inflow</li>
+          </ul>
+          <li><input type="checkbox" id="input_chk_show_velocity" onchange="draw()">Show Velocity</li>
+          <li>Mouse Controls:</li>
+          <ul>
+            <li>Drag: Add Velocity</li>
+            <li>Shift+Drag: Add Density</li>
+          </ul>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
+  <script src="https://button.glitch.me/button.js"></script>
+</body>
+
+</html>
