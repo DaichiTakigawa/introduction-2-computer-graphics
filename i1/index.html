@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title id="title">[utokyo-iscg-2021] I1: Image filtering</title>
+  <script src="./index.js"></script>
+</head>
+
+<body onload="init()">
+  <h2><a href="https://www.takigawa-memo.com/introduction-2-computer-graphics/">← HOME</a></h2>
+  <h2><a target="_blank"
+      href="https://github.com/DaichiTakigawa/introduction-2-computer-graphics/blob/develop/src/i1/index.ts">ソースコード</a>
+  </h2>
+  <h2><a target="_blank" href="http://research.nii.ac.jp/~takayama/teaching/utokyo-iscg-2021/">
+      <script type="text/javascript">document.write(document.getElementById("title").innerHTML);</script>
+    </a></h2>
+  <table>
+    <tr valign="top">
+      <td align="center"><img id="img_original" crossorigin="anonymous"><br>Original</td>
+      <td align="center"><img id="img_smoothed"><br>Smoothed</td>
+      <td align="center"><img id="img_detail"><br>Detail<br>= Original - Smoothed</td>
+      <td align="center"><img id="img_enhanced"><br>Enhanced<br>= Smoothed + s * Detail</td>
+    </tr>
+  </table>
+  <ul>
+    <li>Load Image: <input type="file" id="input_file_original" accept="image/*"></li>
+    <li>Sigma_Space: <input type="number" id="input_num_sigma_space" step="1" min="1" value="5"></li>
+    <li>Sigma_Range: <input type="number" id="input_num_sigma_range" step="1" min="1" value="25"></li>
+    <li><input type="checkbox" id="input_chk_use_bilateral" checked> Use Bilateral</li>
+    <li><button id="btn_do_smoothing">Do Smoothing</button></li>
+    <li>Detail Scaling: <input type="number" id="input_num_detail_scaling" step="0.1" min="0" value="2"></li>
+    <li><button id="btn_enhance_detail">Enhance Detail</button></li>
+  </ul>
+
+</body>
+
+</html>
